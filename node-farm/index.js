@@ -1,5 +1,7 @@
 const fs = require("fs");
 const http = require('http');
+const url = require('url');
+const path = require("path");
 
 // File ----------------------
 // Blocking, synchronous way
@@ -37,8 +39,19 @@ console.log('will read file');
 
 // Server ----------------------
 const server = http.createServer((request, response) => {
-    // console.log(request);
-    response.end('Hello from the server!');
+
+    const pathName = request.url;
+
+    if (pathName === '/' || pathName === '/overview') {
+        response.end('Hello from the server!');
+    } else if (pathName === '/product') {
+        response.end('This is the product');
+    } else {
+        response.writeHead(404, {
+            'Content-type': 'text/html'
+        });
+        response.end('<h1>Page not found!</h1>');
+    }
 });
 
 server.listen(8000, '127.0.0.1', () => {
