@@ -53,7 +53,11 @@ const tourSchema = new mongoose.Schema({
         default: Date.now(),
         select: false
     },
-    startDates: [Date]
+    startDates: [Date],
+    secretTour: {
+        type: Boolean,
+        default: false
+    }
 }, {
     // for enabling the virtual properties
     toJSON: {virtuals: true},
@@ -74,17 +78,56 @@ tourSchema.pre('save', function (next) {
     next();
 });
 
-// Reference for pre- and post-document middlewares...
-// tourSchema.pre('save', function (next) {
-//     console.log('Will save document...');
-//     next();
-// })
-//
-// tourSchema.post('save', function (doc, next) {
-//     console.log(doc);
-//     next();
-// })
+// Query middleware, in case of find it will not run for queries executed with findOne and others.
+// we need to use a regular expression as below to make it work will all
 
+// tourSchema.pre('find', function (next) {
+//     this.find({
+//         secretTour: {$ne: true}
+//     });
+//     next();
+// });
+
+tourSchema.pre(/^find/, function (next) {
+    this.find({
+        secretTour: {$ne: true}
+    });
+    this.start = Date.now();
+    next();
+})
+
+tourSchema.post(/^find/, function (docs, next) {
+    console.log(`Query took: ${Date.now() - this.start} milliseconds !`);
+    console.log(docs);
+    next();
+});
+
+// Aggregation middleware
+tourSchema.pre('aggregate', function (next) {
+
+    this.pipeline().unshift({$match: {secretTour: {$ne: true}}})
+
+    /*
+    [
+  { '$match': { ratingsAverage: [Object] } },
+  {
+    '$group': {
+      _id: [Object],
+      num: [Object],
+      numRatings: [Object],
+      avgRating: [Object],
+      avgPrice: [Object],
+      minPrice: [Object],
+      maxPrice: [Object]
+    }
+  },
+  { '$sort': { avgPrice: 1 } }
+]
+
+     */
+    console.log(this.pipeline());
+    next();
+});
 
 const Tour = mongoose.model('Tour', tourSchema);
 
