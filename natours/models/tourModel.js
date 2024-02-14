@@ -74,6 +74,17 @@ tourSchema.pre('save', function (next) {
     next();
 });
 
+// Reference for pre- and post-document middlewares...
+// tourSchema.pre('save', function (next) {
+//     console.log('Will save document...');
+//     next();
+// })
+//
+// tourSchema.post('save', function (doc, next) {
+//     console.log(doc);
+//     next();
+// })
+
 
 const Tour = mongoose.model('Tour', tourSchema);
 
