@@ -53,8 +53,6 @@ const tourSchema = new mongoose.Schema({
             },
             message: 'Discount price ({VALUE}) should be below regular price'
         }
-
-
     },
     summary: {
         type: String,
@@ -122,6 +120,13 @@ tourSchema
     .get(function () {
         return this.duration / 7;
     });
+
+// virtual populate
+tourSchema.virtual('reviews', {
+    ref: 'Review',
+    foreignField: 'tour',
+    localField: '_id'
+});
 
 // Document middleware: runs before the .save() and .create() command
 tourSchema.pre('save', function (next) {
