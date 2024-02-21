@@ -104,7 +104,12 @@ const tourSchema = new mongoose.Schema({
             day: Number
         }
     ],
-    guides: Array
+    guides: [
+        {
+            type: mongoose.Schema.ObjectId,
+            ref: 'User'
+        }
+    ]
 }, {
     // for enabling the virtual properties
     toJSON: {virtuals: true},
@@ -124,12 +129,6 @@ tourSchema.pre('save', function (next) {
     // console.log(this);
     next();
 });
-
-tourSchema.pre('save', async function (next) {
-    const guidesPromises = this.guides.map(async id => await User.findById(id));
-    this.guides = await Promise.all(guidesPromises);
-    next();
-})
 
 // Query middleware, in case of find it will not run for queries executed with findOne and others.
 // we need to use a regular expression as below to make it work will all
@@ -154,6 +153,14 @@ tourSchema.post(/^find/, function (docs, next) {
     // console.log(docs);
     next();
 });
+
+tourSchema.pre(/^find/, function (next) {
+    this.populate({
+        path: 'guides',
+        select: '-__v -passwordChangedAt'
+    });
+    next();
+})
 
 // Aggregation middleware
 tourSchema.pre('aggregate', function (next) {
