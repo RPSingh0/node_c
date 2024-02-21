@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
+const User = require('./userModel');
 // const validator = require('validator');
 
 const tourSchema = new mongoose.Schema({
@@ -78,7 +79,32 @@ const tourSchema = new mongoose.Schema({
     secretTour: {
         type: Boolean,
         default: false
-    }
+    },
+    startLocation: {
+        // GeoJSON
+        type: {
+            type: String,
+            default: 'Point',
+            enum: ['Point']
+        },
+        coordinates: [Number],
+        address: String,
+        description: String
+    },
+    locations: [
+        {
+            type: {
+                type: String,
+                default: 'Point',
+                enum: ['Point']
+            },
+            coordinates: [Number],
+            address: String,
+            description: String,
+            day: Number
+        }
+    ],
+    guides: Array
 }, {
     // for enabling the virtual properties
     toJSON: {virtuals: true},
@@ -98,6 +124,12 @@ tourSchema.pre('save', function (next) {
     // console.log(this);
     next();
 });
+
+tourSchema.pre('save', async function (next) {
+    const guidesPromises = this.guides.map(async id => await User.findById(id));
+    this.guides = await Promise.all(guidesPromises);
+    next();
+})
 
 // Query middleware, in case of find it will not run for queries executed with findOne and others.
 // we need to use a regular expression as below to make it work will all
