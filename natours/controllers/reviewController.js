@@ -2,7 +2,12 @@ const Review = require('./../models/reviewModel');
 const catchAsync = require('./../utils/catchAsync');
 
 exports.getAllReviews = catchAsync(async (req, res, next) => {
-    const reviews = await Review.find();
+    let filter = {}
+    if (req.params.tourId) {
+        filter = {tour: req.params.tourId};
+    }
+
+    const reviews = await Review.find(filter);
 
     res.status(200)
         .json({
@@ -15,10 +20,10 @@ exports.getAllReviews = catchAsync(async (req, res, next) => {
 });
 
 exports.createReview = catchAsync(async (req, res, next) => {
-    if(!req.body.tour) {
+    if (!req.body.tour) {
         req.body.tour = req.params.tourId;
     }
-    if(!req.body.user) {
+    if (!req.body.user) {
         req.body.user = req.user.id; // we got this from protect middleware
     }
 
