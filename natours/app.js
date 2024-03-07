@@ -12,6 +12,8 @@ const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
 const path = require("path");
+const viewRouter = require('./routes/viewRoutes');
+const cookieParser = require('cookie-parser');
 
 const app = express();
 
@@ -42,6 +44,7 @@ app.use('/api', limiter);
 
 // body parser, reading data from body into req.body
 app.use(express.json({limit: '10kb'}));
+app.use(cookieParser());
 
 // data sanitization against NOSQL query injection
 app.use(mongoSanitize());
@@ -57,30 +60,12 @@ app.use(hpp({
 // test middleware
 app.use((req, res, next) => {
     req.requestTime = new Date().toISOString();
+    console.log(req.cookies);
     next();
 });
 
-// PUG routes
-app.get('/', (req, res) => {
-    res.status(200).render('base', {
-        tour: 'The forest hiker',
-        user: 'Jonas'
-    });
-});
-
-app.get('/overview', (req, res) => {
-    res.status(200).render('overview', {
-        title: 'All tours'
-    })
-});
-
-app.get('/tour', (req, res) => {
-    res.status(200).render('tour', {
-        title: 'The Forest Hiker Tour'
-    })
-});
-
 // MOUNTING THE ROUTERS
+app.use('/', viewRouter);
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/reviews', reviewRouter);
